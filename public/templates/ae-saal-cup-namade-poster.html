@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ae Saal Cup Namade Poster</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap')
+        
+        @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Anton&display=swap');
+
+        :root {
+            --brand-green: #50fa7b; /* Neon Pop Green */
+            --brand-blue: #0047AB;   /* Royal Blue */
+            --brand-white: #ffffff;
+            --brand-black: #050505;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Anton', sans-serif;
+        }
+
+        /* Main Canvas Container - Fixed for Export */
+        .poster-container {
+            width: 1080px;
+            height: 1080px;
+            background-color: var(--brand-black);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #000;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            height: 280px;
+            padding: 30px 40px;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            color: var(--brand-green);
+            font-family: 'Alfa Slab One', serif;
+            font-size: 160px;
+            line-height: 0.85;
+            text-transform: uppercase;
+            letter-spacing: -2px;
+            text-shadow: 4px 4px 0px var(--brand-blue);
+        }
+
+        /* --- Logo Area (Top Right) --- */
+        .logo-container {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            width: 180px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        /* CSS Drawing of the Swoosh Logo */
+        .logo-swoosh {
+            width: 140px;
+            height: 60px;
+            border-top: 15px solid var(--brand-green);
+            border-right: 15px solid var(--brand-green);
+            border-radius: 0 100px 0 0;
+            margin-bottom: -20px;
+            position: relative;
+        }
+        .logo-swoosh::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 100px;
+            height: 40px;
+            border-top: 10px solid var(--brand-blue);
+            border-right: 10px solid var(--brand-blue);
+            border-radius: 0 80px 0 0;
+        }
+        .ball-icon {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            border: 3px solid var(--brand-black);
+            margin-right: 10px;
+            z-index: 2;
+            /* Simple soccer ball pattern via gradient */
+            background-image: 
+                radial-gradient(circle at 50% 50%, var(--brand-black) 20%, transparent 21%),
+                linear-gradient(45deg, transparent 45%, var(--brand-black) 45%, var(--brand-black) 55%, transparent 55%);
+        }
+
+        /* --- Image Grid Layout --- */
+        .visuals-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border-top: 6px solid var(--brand-white);
+            position: relative;
+        }
+
+        .strip {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 6px solid var(--brand-white);
+            background-color: #222;
+        }
+
+        /* Grayscale + Contrast Filter to match the gritty style */
+        .strip img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(120%) brightness(1.1);
+            mix-blend-mode: normal;
+        }
+
+        /* Optional: Add a subtle green/blue tint overlay to the images */
+        .strip::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Creating the Blue/Green Tint */
+            background: linear-gradient(180deg, rgba(0, 71, 171, 0.2), rgba(80, 250, 123, 0.1));
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        /* Halftone pattern overlay effect */
+        .strip::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle, #000 1px, transparent 1px);
+            background-size: 4px 4px;
+            opacity: 0.2;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+
+        /* --- Specific Slices --- */
+        
+        /* 1. Top Slice: Eyes/Forehead */
+        .strip-top {
+            height: 30%; 
+        }
+        .strip-top img {
+            object-position: 50% 20%; /* Focus on eyes */
+            transform: scale(1.1);
+        }
+
+        /* 2. Middle Slice: Mouth/Yelling */
+        .strip-mid {
+            height: 35%;
+        }
+        .strip-mid img {
+            object-position: 50% 45%; /* Focus on mouth */
+            transform: scale(1.2);
+        }
+
+        /* 3. Bottom Slice: Crowd or Second Image */
+        .strip-bottom {
+            height: 35%;
+            border-bottom: none; /* No border on last item */
+        }
+        .strip-bottom img {
+            object-position: center top;
+            /* Using the crowd/celebration vibe */
+        }
+
+        /* --- Branding Corner Accent --- */
+        .corner-accent {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-bottom: 100px solid var(--brand-green);
+            border-left: 100px solid transparent;
+            z-index: 5;
+        }
+
+    
+    </style>
+</head>
+<body>
+    <div class="poster-container"><div class="header"><h1 style="transform: translate(0px, 1.42857px); font-family: Playfair Display">Ae Saal<br />Cup Namade</h1><div class="logo-container"><div class="logo-swoosh"></div><div class="ball-icon"></div></div></div><div class="visuals-container"><div class="strip strip-top"><img src="https://pb.creo-dev.onesol.in/api/files/pbc_1321337024/qugqkvzec4c25gu/celebrating_fan_v4sn0dqfxr.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTc2ODQwNzY3NywiaWQiOiJpeWpzMmR1aml5bXR6ejUiLCJ0eXBlIjoiZmlsZSJ9.F8bDWbaFd2J1GU-sG3pfjh_GfWdEMRG0YnWXUcmdwFQ&expires=86400" alt="Fan Eyes Intensity" /></div><div class="strip strip-mid"><img src="https://pb.creo-dev.onesol.in/api/files/pbc_1321337024/qugqkvzec4c25gu/celebrating_fan_v4sn0dqfxr.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTc2ODQwNzY3NywiaWQiOiJpeWpzMmR1aml5bXR6ejUiLCJ0eXBlIjoiZmlsZSJ9.F8bDWbaFd2J1GU-sG3pfjh_GfWdEMRG0YnWXUcmdwFQ&expires=86400" alt="Fan Shouting" /></div><div class="strip strip-bottom"><img src="https://pb.creo-dev.onesol.in/api/files/pbc_1321337024/qugqkvzec4c25gu/celebrating_fan_v4sn0dqfxr.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uSWQiOiJwYmNfMzE0MjYzNTgyMyIsImV4cCI6MTc2ODQwNzY3NywiaWQiOiJpeWpzMmR1aml5bXR6ejUiLCJ0eXBlIjoiZmlsZSJ9.F8bDWbaFd2J1GU-sG3pfjh_GfWdEMRG0YnWXUcmdwFQ&expires=86400" alt="Crowd Celebration" /></div></div><div class="corner-accent"></div></div><h1 style="font-size: 48px; font-weight: 700; color: #000000; margin: 0; position: absolute; left: 50px; top: 50px; cursor: move; user-select: none; background-color: #9d8080">Heading 1</h1>
+</body>
+</html>
