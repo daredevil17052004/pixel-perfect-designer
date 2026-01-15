@@ -6,7 +6,7 @@ interface SelectionOverlayProps {
 }
 
 export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
-  const handleSize = 8;
+  const handleSize = 10;
 
   return (
     <div
@@ -19,19 +19,20 @@ export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
       }}
     >
       {/* Selection border */}
-      <div className="absolute inset-0 border-2 border-[hsl(210,100%,50%)] rounded-sm" />
+      <div className="absolute inset-0 border-2 border-[hsl(262,83%,58%)] rounded-sm" 
+           style={{ boxShadow: '0 0 0 1px rgba(139, 92, 246, 0.3)' }} />
       
       {/* Corner handles */}
       {[
-        { pos: 'top-left', style: { top: -handleSize / 2, left: -handleSize / 2 } },
-        { pos: 'top-right', style: { top: -handleSize / 2, right: -handleSize / 2 } },
-        { pos: 'bottom-left', style: { bottom: -handleSize / 2, left: -handleSize / 2 } },
-        { pos: 'bottom-right', style: { bottom: -handleSize / 2, right: -handleSize / 2 } },
-      ].map(({ pos, style }) => (
+        { pos: 'top-left', style: { top: -handleSize / 2, left: -handleSize / 2 }, cursor: 'nwse-resize' },
+        { pos: 'top-right', style: { top: -handleSize / 2, right: -handleSize / 2 }, cursor: 'nesw-resize' },
+        { pos: 'bottom-left', style: { bottom: -handleSize / 2, left: -handleSize / 2 }, cursor: 'nesw-resize' },
+        { pos: 'bottom-right', style: { bottom: -handleSize / 2, right: -handleSize / 2 }, cursor: 'nwse-resize' },
+      ].map(({ pos, style, cursor }) => (
         <div
           key={pos}
-          className="absolute w-2 h-2 bg-[hsl(210,100%,50%)] border border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto cursor-nwse-resize"
-          style={style}
+          className="absolute bg-[hsl(262,83%,58%)] border-2 border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto shadow-md"
+          style={{ ...style, width: handleSize, height: handleSize, cursor }}
         />
       ))}
 
@@ -44,14 +45,14 @@ export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
       ].map(({ pos, style, cursor }) => (
         <div
           key={pos}
-          className="absolute w-2 h-2 bg-[hsl(210,100%,50%)] border border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto"
-          style={{ ...style, cursor }}
+          className="absolute bg-[hsl(262,83%,58%)] border-2 border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto shadow-md"
+          style={{ ...style, width: handleSize, height: handleSize, cursor }}
         />
       ))}
 
       {/* Size indicator */}
       <div 
-        className="absolute -bottom-7 left-1/2 -translate-x-1/2 bg-[hsl(210,100%,50%)] text-[hsl(0,0%,100%)] text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap font-mono"
+        className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[hsl(262,83%,58%)] text-[hsl(0,0%,100%)] text-[10px] px-2 py-1 rounded-md whitespace-nowrap font-mono shadow-lg"
       >
         {Math.round(bounds.width)} × {Math.round(bounds.height)}
       </div>

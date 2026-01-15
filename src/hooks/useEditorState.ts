@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react';
-import { EditorState, SelectedElement, ElementBounds } from '@/types/editor';
+import { EditorState, SelectedElement, ElementBounds, EditorTool } from '@/types/editor';
 
 const initialState: EditorState = {
   zoom: 0.5,
   selectedElement: null,
   isEditing: false,
+  isDragging: false,
   htmlContent: '',
   canvasWidth: 600,
   canvasHeight: 750,
+  activeTool: 'select',
 };
 
 export function useEditorState() {
@@ -23,6 +25,10 @@ export function useEditorState() {
 
   const zoomOut = useCallback(() => {
     setState(prev => ({ ...prev, zoom: Math.max(0.1, prev.zoom - 0.1) }));
+  }, []);
+
+  const setActiveTool = useCallback((tool: EditorTool) => {
+    setState(prev => ({ ...prev, activeTool: tool, selectedElement: tool !== 'select' ? null : prev.selectedElement }));
   }, []);
 
   const selectElement = useCallback((element: HTMLElement | null, iframeDoc?: Document) => {
@@ -56,6 +62,13 @@ export function useEditorState() {
     setState(prev => ({ ...prev, selectedElement: selected, isEditing: false }));
   }, []);
 
+  const updateSelectedBounds = useCallback((bounds: ElementBounds) => {
+    setState(prev => ({
+      ...prev,
+      selectedElement: prev.selectedElement ? { ...prev.selectedElement, bounds } : null,
+    }));
+  }, []);
+
   const clearSelection = useCallback(() => {
     setState(prev => ({ ...prev, selectedElement: null, isEditing: false }));
   }, []);
@@ -66,6 +79,10 @@ export function useEditorState() {
 
   const stopEditing = useCallback(() => {
     setState(prev => ({ ...prev, isEditing: false }));
+  }, []);
+
+  const setIsDragging = useCallback((isDragging: boolean) => {
+    setState(prev => ({ ...prev, isDragging }));
   }, []);
 
   const setHtmlContent = useCallback((content: string) => {
@@ -94,10 +111,13 @@ export function useEditorState() {
     setZoom,
     zoomIn,
     zoomOut,
+    setActiveTool,
     selectElement,
+    updateSelectedBounds,
     clearSelection,
     startEditing,
     stopEditing,
+    setIsDragging,
     setHtmlContent,
     setCanvasSize,
     updateElementStyle,

@@ -21,13 +21,25 @@ export interface SelectedElement {
   isImageElement: boolean;
 }
 
+export type EditorTool = 'select' | 'pan' | 'text' | 'rectangle' | 'circle' | 'line';
+
 export interface EditorState {
   zoom: number;
   selectedElement: SelectedElement | null;
   isEditing: boolean;
+  isDragging: boolean;
   htmlContent: string;
   canvasWidth: number;
   canvasHeight: number;
+  activeTool: EditorTool;
+}
+
+export interface DragState {
+  isDragging: boolean;
+  startX: number;
+  startY: number;
+  elementStartX: number;
+  elementStartY: number;
 }
 
 export interface StyleProperty {
@@ -76,3 +88,10 @@ export const DESIGN_TEMPLATES: DesignTemplate[] = [
     path: '/templates/illuminate-your-world-poster.html',
   },
 ];
+
+export interface ShapeConfig {
+  type: 'rectangle' | 'circle' | 'line';
+  fill: string;
+  stroke: string;
+  strokeWidth: number;
+}
