@@ -1,47 +1,49 @@
-import { ZoomIn, ZoomOut, Maximize, Hand, MousePointer2, Type, Image, Undo2, Redo2, Download } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Hand, MousePointer2, Type, Image, Square, Circle, Minus, Undo2, Redo2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { EditorTool } from '@/types/editor';
 
 interface EditorToolbarProps {
   zoom: number;
+  activeTool: EditorTool;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onZoomFit: () => void;
+  onToolChange: (tool: EditorTool) => void;
 }
 
-export function EditorToolbar({ zoom, onZoomIn, onZoomOut, onZoomFit }: EditorToolbarProps) {
+export function EditorToolbar({ zoom, activeTool, onZoomIn, onZoomOut, onZoomFit, onToolChange }: EditorToolbarProps) {
+  const ToolButton = ({ tool, icon: Icon, label, shortcut }: { tool: EditorTool; icon: React.ElementType; label: string; shortcut: string }) => (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button 
+          variant={activeTool === tool ? 'default' : 'ghost'} 
+          size="icon" 
+          className="h-8 w-8"
+          onClick={() => onToolChange(tool)}
+        >
+          <Icon className="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label} ({shortcut})</TooltipContent>
+    </Tooltip>
+  );
+
   return (
     <div className="h-12 bg-card border-b border-border flex items-center justify-between px-4">
       <div className="flex items-center gap-1">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MousePointer2 className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Select (V)</TooltipContent>
-        </Tooltip>
-        
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Hand className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Pan (H)</TooltipContent>
-        </Tooltip>
+        <ToolButton tool="select" icon={MousePointer2} label="Select" shortcut="V" />
+        <ToolButton tool="pan" icon={Hand} label="Pan" shortcut="H" />
 
         <Separator orientation="vertical" className="mx-2 h-6" />
         
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Type className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Text (T)</TooltipContent>
-        </Tooltip>
+        <ToolButton tool="text" icon={Type} label="Add Text" shortcut="T" />
+        <ToolButton tool="rectangle" icon={Square} label="Rectangle" shortcut="R" />
+        <ToolButton tool="circle" icon={Circle} label="Circle" shortcut="C" />
+        <ToolButton tool="line" icon={Minus} label="Line" shortcut="L" />
+        
+        <Separator orientation="vertical" className="mx-2 h-6" />
         
         <Tooltip>
           <TooltipTrigger asChild>
@@ -49,7 +51,7 @@ export function EditorToolbar({ zoom, onZoomIn, onZoomOut, onZoomFit }: EditorTo
               <Image className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Image</TooltipContent>
+          <TooltipContent>Add Image</TooltipContent>
         </Tooltip>
       </div>
 
@@ -84,7 +86,7 @@ export function EditorToolbar({ zoom, onZoomIn, onZoomOut, onZoomFit }: EditorTo
             <TooltipContent>Zoom Out (-)</TooltipContent>
           </Tooltip>
           
-          <span className="text-xs font-medium w-12 text-center text-muted-foreground">
+          <span className="text-xs font-medium w-12 text-center text-foreground">
             {Math.round(zoom * 100)}%
           </span>
           
