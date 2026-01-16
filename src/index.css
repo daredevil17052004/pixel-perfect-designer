@@ -100,50 +100,50 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 11%;
+    --background: 225 25% 8%;
     --foreground: 210 40% 98%;
 
-    --card: 217 32% 17%;
+    --card: 225 25% 12%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 215 24% 26%;
+    --popover: 225 25% 14%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 198 93% 59%;
-    --primary-foreground: 204 80% 15%;
+    --primary: 260 85% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 212 26% 83%;
-    --secondary-foreground: 228 84% 4%;
+    --secondary: 175 70% 45%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 215 16% 46%;
-    --muted-foreground: 210 40% 98%;
+    --muted: 225 20% 22%;
+    --muted-foreground: 220 15% 70%;
 
-    --accent: 228 84% 4%;
-    --accent-foreground: 215 20% 65%;
+    --accent: 330 85% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 85% 97%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 215 19% 34%;
-    --input: 215 19% 34%;
-    --ring: 198 93% 59%;
+    --border: 225 20% 25%;
+    --input: 225 20% 25%;
+    --ring: 260 85% 65%;
 
-    --sidebar-background: 240 10% 8%;
+    --sidebar-background: 225 25% 10%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 198 93% 59%;
-    --sidebar-primary-foreground: 204 80% 15%;
-    --sidebar-accent: 215 20% 65%;
-    --sidebar-accent-foreground: 228 84% 4%;
-    --sidebar-border: 215 19% 34%;
-    --sidebar-ring: 198 93% 59%;
+    --sidebar-primary: 260 85% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 50% 25%;
+    --sidebar-accent-foreground: 260 85% 85%;
+    --sidebar-border: 225 20% 22%;
+    --sidebar-ring: 260 85% 65%;
 
-    --chart-1: 199 95% 73%;
-    --chart-2: 211 96% 78%;
-    --chart-3: 215 20% 65%;
-    --chart-4: 215 16% 46%;
-    --chart-5: 215 19% 34%;
+    --chart-1: 260 85% 65%;
+    --chart-2: 175 70% 45%;
+    --chart-3: 330 85% 60%;
+    --chart-4: 45 95% 55%;
+    --chart-5: 200 90% 55%;
 
-    --sidebar: 217 32% 17%;
+    --sidebar: 225 25% 12%;
 
     --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
     --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
@@ -155,10 +155,10 @@ All colors MUST be HSL.
     --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
 
     /* Editor-specific tokens */
-    --canvas-bg: 240 10% 4%;
-    --selection-color: 200 100% 50%;
-    --handle-color: 200 100% 60%;
-    --toolbar-bg: 240 10% 10%;
+    --canvas-bg: 225 25% 5%;
+    --selection-color: 260 85% 65%;
+    --handle-color: 260 85% 70%;
+    --toolbar-bg: 225 25% 10%;
   }
 }
 

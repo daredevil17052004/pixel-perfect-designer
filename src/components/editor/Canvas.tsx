@@ -1,6 +1,7 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { SelectedElement, EditorTool, DragState } from '@/types/editor';
 import { SelectionOverlay } from './SelectionOverlay';
+import { ElementContextMenu } from './ElementContextMenu';
 
 interface CanvasProps {
   htmlContent: string;
@@ -15,7 +16,11 @@ interface CanvasProps {
   onSetDragging: (isDragging: boolean) => void;
 }
 
-export function Canvas({
+export interface CanvasRef {
+  getIframe: () => HTMLIFrameElement | null;
+}
+
+export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
   htmlContent,
   zoom,
   activeTool,
@@ -26,7 +31,7 @@ export function Canvas({
   onStartEditing,
   onStopEditing,
   onSetDragging,
-}: CanvasProps) {
+}, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
@@ -38,6 +43,11 @@ export function Canvas({
     elementStartX: 0,
     elementStartY: 0,
   });
+  const [contextMenuOpen, setContextMenuOpen] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    getIframe: () => iframeRef.current,
+  }));
 
   // Load HTML content into iframe
   useEffect(() => {
@@ -316,54 +326,113 @@ export function Canvas({
     }
   }, [onSelectElement]);
 
+  // Context menu actions
+  const handleBringToFront = useCallback(() => {
+    if (!selectedElement?.element) return;
+    selectedElement.element.style.zIndex = '9999';
+  }, [selectedElement]);
+
+  const handleSendToBack = useCallback(() => {
+    if (!selectedElement?.element) return;
+    selectedElement.element.style.zIndex = '1';
+  }, [selectedElement]);
+
+  const handleBringForward = useCallback(() => {
+    if (!selectedElement?.element) return;
+    const currentZ = parseInt(selectedElement.element.style.zIndex || '1', 10);
+    selectedElement.element.style.zIndex = String(currentZ + 1);
+  }, [selectedElement]);
+
+  const handleSendBackward = useCallback(() => {
+    if (!selectedElement?.element) return;
+    const currentZ = parseInt(selectedElement.element.style.zIndex || '1', 10);
+    selectedElement.element.style.zIndex = String(Math.max(1, currentZ - 1));
+  }, [selectedElement]);
+
+  const handleSetTransparency = useCallback((opacity: number) => {
+    if (!selectedElement?.element) return;
+    selectedElement.element.style.opacity = String(opacity);
+  }, [selectedElement]);
+
+  const handleDeleteElement = useCallback(() => {
+    if (!selectedElement?.element) return;
+    selectedElement.element.remove();
+    onSelectElement(null);
+  }, [selectedElement, onSelectElement]);
+
+  const handleDuplicateElement = useCallback(() => {
+    if (!selectedElement?.element || !iframeDoc) return;
+    const clone = selectedElement.element.cloneNode(true) as HTMLElement;
+    // Offset the clone
+    const currentLeft = parseFloat(clone.style.left || '0');
+    const currentTop = parseFloat(clone.style.top || '0');
+    clone.style.left = `${currentLeft + 20}px`;
+    clone.style.top = `${currentTop + 20}px`;
+    
+    const container = iframeDoc.querySelector('.poster-container') || iframeDoc.body;
+    container.appendChild(clone);
+    onSelectElement(clone, iframeDoc);
+  }, [selectedElement, iframeDoc, onSelectElement]);
+
   return (
-    <div 
-      ref={containerRef}
-      className="flex-1 overflow-auto flex items-center justify-center p-8"
-      style={{ 
-        backgroundColor: 'hsl(240 10% 4%)',
-        backgroundImage: `
-          radial-gradient(circle at 1px 1px, hsl(240 10% 12%) 1px, transparent 0)
-        `,
-        backgroundSize: '20px 20px',
-      }}
-      onClick={handleCanvasClick}
+    <ElementContextMenu
+      onBringToFront={handleBringToFront}
+      onSendToBack={handleSendToBack}
+      onBringForward={handleBringForward}
+      onSendBackward={handleSendBackward}
+      onSetTransparency={handleSetTransparency}
+      onDelete={handleDeleteElement}
+      onDuplicate={handleDuplicateElement}
+      disabled={!selectedElement}
     >
       <div 
-        className="relative bg-transparent shadow-2xl rounded-lg overflow-hidden"
-        style={{
-          transform: `scale(${zoom})`,
-          transformOrigin: 'center center',
-          transition: dragState.isDragging ? 'none' : 'transform 0.2s ease-out',
+        ref={containerRef}
+        className="flex-1 overflow-auto flex items-center justify-center p-8"
+        style={{ 
+          backgroundColor: 'hsl(240 10% 4%)',
+          backgroundImage: `
+            radial-gradient(circle at 1px 1px, hsl(240 10% 12%) 1px, transparent 0)
+          `,
+          backgroundSize: '20px 20px',
         }}
+        onClick={handleCanvasClick}
       >
-        {htmlContent ? (
-          <>
-            <iframe
-              ref={iframeRef}
-              className="border-0 block"
-              style={{
-                width: iframeSize.width,
-                height: iframeSize.height,
-                pointerEvents: 'auto',
-              }}
-              title="Design Canvas"
-            />
-            {selectedElement && !isEditing && (
-              <SelectionOverlay 
-                bounds={selectedElement.bounds}
-                zoom={zoom}
+        <div 
+          className="relative bg-transparent shadow-2xl rounded-lg overflow-hidden"
+          style={{
+            transform: `scale(${zoom})`,
+            transformOrigin: 'center center',
+            transition: dragState.isDragging ? 'none' : 'transform 0.2s ease-out',
+          }}
+        >
+          {htmlContent ? (
+            <>
+              <iframe
+                ref={iframeRef}
+                className="border-0 block"
+                style={{
+                  width: iframeSize.width,
+                  height: iframeSize.height,
+                  pointerEvents: 'auto',
+                }}
+                title="Design Canvas"
               />
-            )}
-          </>
-        ) : (
-          <div className="w-[600px] h-[750px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border">
-            <div className="text-6xl mb-4">📄</div>
-            <div className="text-lg font-medium mb-2 text-foreground">No design loaded</div>
-            <div className="text-sm">Select a template from the sidebar to start editing</div>
-          </div>
-        )}
+              {selectedElement && !isEditing && (
+                <SelectionOverlay 
+                  bounds={selectedElement.bounds}
+                  zoom={zoom}
+                />
+              )}
+            </>
+          ) : (
+            <div className="w-[600px] h-[750px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border">
+              <div className="text-6xl mb-4">📄</div>
+              <div className="text-lg font-medium mb-2 text-foreground">No design loaded</div>
+              <div className="text-sm">Select a template from the sidebar to start editing</div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </ElementContextMenu>
   );
-}
+});

@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { EditorToolbar } from './EditorToolbar';
 import { TemplateSidebar } from './TemplateSidebar';
-import { Canvas } from './Canvas';
+import { Canvas, CanvasRef } from './Canvas';
 import { PropertiesPanel } from './PropertiesPanel';
 import { useEditorState } from '@/hooks/useEditorState';
+import { useExport } from '@/hooks/useExport';
 import { DesignTemplate, EditorTool } from '@/types/editor';
 
 export function DesignEditor() {
@@ -22,6 +23,8 @@ export function DesignEditor() {
     updateElementStyle,
   } = useEditorState();
 
+  const { exportAsPng, exportAsHtml } = useExport();
+  const canvasRef = useRef<CanvasRef>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
 
   const handleSelectTemplate = useCallback(async (template: DesignTemplate) => {
@@ -34,6 +37,21 @@ export function DesignEditor() {
       console.error('Failed to load template:', error);
     }
   }, [setHtmlContent]);
+
+  const handleUploadHtml = useCallback((content: string) => {
+    setSelectedTemplateId(undefined);
+    setHtmlContent(content);
+  }, [setHtmlContent]);
+
+  const handleExportPng = useCallback(() => {
+    const iframe = canvasRef.current?.getIframe();
+    exportAsPng(iframe);
+  }, [exportAsPng]);
+
+  const handleExportHtml = useCallback(() => {
+    const iframe = canvasRef.current?.getIframe();
+    exportAsHtml(iframe);
+  }, [exportAsHtml]);
 
   const handleZoomFit = useCallback(() => {
     setZoom(0.5);
@@ -93,6 +111,9 @@ export function DesignEditor() {
         onZoomOut={zoomOut}
         onZoomFit={handleZoomFit}
         onToolChange={handleToolChange}
+        onUploadHtml={handleUploadHtml}
+        onExportPng={handleExportPng}
+        onExportHtml={handleExportHtml}
       />
       
       <div className="flex-1 flex overflow-hidden">
@@ -102,6 +123,7 @@ export function DesignEditor() {
         />
         
         <Canvas
+          ref={canvasRef}
           htmlContent={state.htmlContent}
           zoom={state.zoom}
           activeTool={state.activeTool}
