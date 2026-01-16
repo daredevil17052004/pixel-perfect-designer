@@ -18,9 +18,14 @@ export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
         height: bounds.height,
       }}
     >
-      {/* Selection border */}
-      <div className="absolute inset-0 border-2 border-[hsl(262,83%,58%)] rounded-sm" 
-           style={{ boxShadow: '0 0 0 1px rgba(139, 92, 246, 0.3)' }} />
+      {/* Selection border - bright yellow for visibility */}
+      <div 
+        className="absolute inset-0 border-2 rounded-sm"
+        style={{ 
+          borderColor: 'hsl(45 100% 50%)',
+          boxShadow: '0 0 0 1px rgba(255, 200, 0, 0.5), 0 0 12px rgba(255, 200, 0, 0.4)',
+        }} 
+      />
       
       {/* Corner handles */}
       {[
@@ -31,8 +36,16 @@ export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
       ].map(({ pos, style, cursor }) => (
         <div
           key={pos}
-          className="absolute bg-[hsl(262,83%,58%)] border-2 border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto shadow-md"
-          style={{ ...style, width: handleSize, height: handleSize, cursor }}
+          className="absolute rounded-sm pointer-events-auto"
+          style={{ 
+            ...style, 
+            width: handleSize, 
+            height: handleSize, 
+            cursor,
+            backgroundColor: 'hsl(45 100% 50%)',
+            border: '2px solid hsl(45 100% 35%)',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+          }}
         />
       ))}
 
@@ -45,14 +58,27 @@ export function SelectionOverlay({ bounds }: SelectionOverlayProps) {
       ].map(({ pos, style, cursor }) => (
         <div
           key={pos}
-          className="absolute bg-[hsl(262,83%,58%)] border-2 border-[hsl(0,0%,100%)] rounded-sm pointer-events-auto shadow-md"
-          style={{ ...style, width: handleSize, height: handleSize, cursor }}
+          className="absolute rounded-sm pointer-events-auto"
+          style={{ 
+            ...style, 
+            width: handleSize, 
+            height: handleSize, 
+            cursor,
+            backgroundColor: 'hsl(45 100% 50%)',
+            border: '2px solid hsl(45 100% 35%)',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
+          }}
         />
       ))}
 
       {/* Size indicator */}
       <div 
-        className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-[hsl(262,83%,58%)] text-[hsl(0,0%,100%)] text-[10px] px-2 py-1 rounded-md whitespace-nowrap font-mono shadow-lg"
+        className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] px-2 py-1 rounded-md whitespace-nowrap font-bold"
+        style={{
+          backgroundColor: 'hsl(45 100% 50%)',
+          color: 'hsl(0 0% 10%)',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        }}
       >
         {Math.round(bounds.width)} × {Math.round(bounds.height)}
       </div>
