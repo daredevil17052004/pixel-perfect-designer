@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import { SelectedElement, EditorTool, DragState } from '@/types/editor';
 import { SelectionOverlay } from './SelectionOverlay';
 
@@ -15,7 +15,11 @@ interface CanvasProps {
   onSetDragging: (isDragging: boolean) => void;
 }
 
-export function Canvas({
+export interface CanvasRef {
+  getIframe: () => HTMLIFrameElement | null;
+}
+
+export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
   htmlContent,
   zoom,
   activeTool,
@@ -26,7 +30,7 @@ export function Canvas({
   onStartEditing,
   onStopEditing,
   onSetDragging,
-}: CanvasProps) {
+}, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
@@ -38,6 +42,10 @@ export function Canvas({
     elementStartX: 0,
     elementStartY: 0,
   });
+
+  useImperativeHandle(ref, () => ({
+    getIframe: () => iframeRef.current,
+  }));
 
   // Load HTML content into iframe
   useEffect(() => {
@@ -366,4 +374,4 @@ export function Canvas({
       </div>
     </div>
   );
-}
+});

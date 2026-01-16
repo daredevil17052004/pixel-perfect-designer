@@ -69,6 +69,21 @@ export const FONT_OPTIONS: FontOption[] = [
   { name: 'Alfa Slab One', family: "'Alfa Slab One', serif" },
   { name: 'Bebas Neue', family: "'Bebas Neue', sans-serif" },
   { name: 'Permanent Marker', family: "'Permanent Marker', cursive" },
+  { name: 'Playfair Display', family: "'Playfair Display', serif" },
+  { name: 'Lato', family: "'Lato', sans-serif" },
+  { name: 'Poppins', family: "'Poppins', sans-serif" },
+  { name: 'Raleway', family: "'Raleway', sans-serif" },
+  { name: 'Merriweather', family: "'Merriweather', serif" },
+  { name: 'Source Sans Pro', family: "'Source Sans Pro', sans-serif" },
+  { name: 'Ubuntu', family: "'Ubuntu', sans-serif" },
+  { name: 'Nunito', family: "'Nunito', sans-serif" },
+  { name: 'Dancing Script', family: "'Dancing Script', cursive" },
+  { name: 'Pacifico', family: "'Pacifico', cursive" },
+  { name: 'Lobster', family: "'Lobster', cursive" },
+  { name: 'Caveat', family: "'Caveat', cursive" },
+  { name: 'Comfortaa', family: "'Comfortaa', cursive" },
+  { name: 'Righteous', family: "'Righteous', cursive" },
+  { name: 'Josefin Sans', family: "'Josefin Sans', sans-serif" },
 ];
 
 export const DESIGN_TEMPLATES: DesignTemplate[] = [
