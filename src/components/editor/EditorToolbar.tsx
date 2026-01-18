@@ -9,6 +9,8 @@ import { EditorTool } from '@/types/editor';
 interface EditorToolbarProps {
   zoom: number;
   activeTool: EditorTool;
+  canUndo: boolean;
+  canRedo: boolean;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onZoomFit: () => void;
@@ -16,11 +18,15 @@ interface EditorToolbarProps {
   onUploadHtml: (content: string) => void;
   onExportPng: () => void;
   onExportHtml: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
 }
 
 export function EditorToolbar({ 
   zoom, 
   activeTool, 
+  canUndo,
+  canRedo,
   onZoomIn, 
   onZoomOut, 
   onZoomFit, 
@@ -28,6 +34,8 @@ export function EditorToolbar({
   onUploadHtml,
   onExportPng,
   onExportHtml,
+  onUndo,
+  onRedo,
 }: EditorToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -115,7 +123,13 @@ export function EditorToolbar({
       <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8" 
+              disabled={!canUndo}
+              onClick={onUndo}
+            >
               <Undo2 className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
@@ -124,7 +138,13 @@ export function EditorToolbar({
         
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" disabled>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8" 
+              disabled={!canRedo}
+              onClick={onRedo}
+            >
               <Redo2 className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
