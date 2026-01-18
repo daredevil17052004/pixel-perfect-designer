@@ -45,6 +45,8 @@ export function PropertiesPanel({ selectedElement, onStyleChange }: PropertiesPa
     letterSpacing: 0,
     padding: 0,
     borderRadius: 0,
+    fontStyle: 'normal',
+    textDecoration: 'none',
   });
 
   useEffect(() => {
@@ -61,6 +63,8 @@ export function PropertiesPanel({ selectedElement, onStyleChange }: PropertiesPa
         letterSpacing: parseSize(cs.letterSpacing),
         padding: parseSize(cs.padding),
         borderRadius: parseSize(cs.borderRadius),
+        fontStyle: cs.fontStyle || 'normal',
+        textDecoration: cs.textDecorationLine || cs.textDecoration || 'none',
       });
     }
   }, [selectedElement]);
@@ -258,14 +262,38 @@ export function PropertiesPanel({ selectedElement, onStyleChange }: PropertiesPa
                 {/* Text Formatting */}
                 <div className="space-y-2">
                   <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Format</Label>
-                  <div className="flex gap-1">
-                    <Button variant="outline" size="icon" className="h-8 w-8">
+                  <div className="flex gap-1 flex-wrap">
+                    <Button 
+                      variant={styles.fontWeight === '700' || styles.fontWeight === 'bold' ? 'secondary' : 'outline'} 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => {
+                        const isBold = styles.fontWeight === '700' || styles.fontWeight === 'bold';
+                        handleChange('fontWeight', isBold ? '400' : '700', 'font-weight');
+                      }}
+                    >
                       <Bold className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="outline" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant={styles.fontStyle === 'italic' ? 'secondary' : 'outline'} 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => {
+                        const isItalic = styles.fontStyle === 'italic';
+                        handleChange('fontStyle', isItalic ? 'normal' : 'italic', 'font-style');
+                      }}
+                    >
                       <Italic className="h-3.5 w-3.5" />
                     </Button>
-                    <Button variant="outline" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant={styles.textDecoration.includes('underline') ? 'secondary' : 'outline'} 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => {
+                        const isUnderline = styles.textDecoration.includes('underline');
+                        handleChange('textDecoration', isUnderline ? 'none' : 'underline', 'text-decoration');
+                      }}
+                    >
                       <Underline className="h-3.5 w-3.5" />
                     </Button>
                     <Separator orientation="vertical" className="h-8 mx-1" />

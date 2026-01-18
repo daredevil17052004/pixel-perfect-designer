@@ -2,6 +2,7 @@ import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHand
 import { SelectedElement, EditorTool, DragState } from '@/types/editor';
 import { SelectionOverlay } from './SelectionOverlay';
 import { ElementContextMenu } from './ElementContextMenu';
+import { ElementActionBar } from './ElementActionBar';
 
 interface CanvasProps {
   htmlContent: string;
@@ -418,10 +419,28 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
                 title="Design Canvas"
               />
               {selectedElement && !isEditing && (
-                <SelectionOverlay 
-                  bounds={selectedElement.bounds}
-                  zoom={zoom}
-                />
+                <>
+                  <SelectionOverlay 
+                    bounds={selectedElement.bounds}
+                    zoom={zoom}
+                  />
+                  <div 
+                    className="absolute z-50"
+                    style={{
+                      left: selectedElement.bounds.x,
+                      top: selectedElement.bounds.y + selectedElement.bounds.height + 8,
+                    }}
+                  >
+                    <ElementActionBar
+                      onBringToFront={handleBringToFront}
+                      onSendToBack={handleSendToBack}
+                      onBringForward={handleBringForward}
+                      onSendBackward={handleSendBackward}
+                      onDelete={handleDeleteElement}
+                      onDuplicate={handleDuplicateElement}
+                    />
+                  </div>
+                </>
               )}
             </>
           ) : (
