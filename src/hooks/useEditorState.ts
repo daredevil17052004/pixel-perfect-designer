@@ -7,8 +7,8 @@ const initialState: EditorState = {
   isEditing: false,
   isDragging: false,
   htmlContent: '',
-  canvasWidth: 600,
-  canvasHeight: 750,
+  canvasWidth: 1080,
+  canvasHeight: 1080,
   activeTool: 'select',
 };
 
