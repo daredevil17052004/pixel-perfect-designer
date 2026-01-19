@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { EditorToolbar } from './EditorToolbar';
-import { TemplateSidebar } from './TemplateSidebar';
+import { EditorHeader } from './EditorHeader';
+import { LeftSidebar } from './LeftSidebar';
 import { Canvas, CanvasRef } from './Canvas';
-import { PropertiesPanel } from './PropertiesPanel';
+import { ZoomControls } from './ZoomControls';
 import { useEditorState } from '@/hooks/useEditorState';
 import { useExport } from '@/hooks/useExport';
 import { useHistory } from '@/hooks/useHistory';
@@ -28,6 +28,7 @@ export function DesignEditor() {
   const { pushState, undo, redo, canUndo, canRedo, captureState } = useHistory();
   const canvasRef = useRef<CanvasRef>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
+  const [projectName, setProjectName] = useState('Untitled Design');
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Auto-save state for undo/redo when content changes
@@ -59,7 +60,6 @@ export function DesignEditor() {
       const response = await fetch(template.path);
       const html = await response.text();
       setHtmlContent(html);
-      // Save initial state for undo
       setTimeout(() => {
         saveCurrentState();
       }, 200);
@@ -71,7 +71,6 @@ export function DesignEditor() {
   const handleUploadHtml = useCallback((content: string) => {
     setSelectedTemplateId(undefined);
     setHtmlContent(content);
-    // Save initial state for undo
     setTimeout(() => {
       saveCurrentState();
     }, 200);
@@ -112,10 +111,8 @@ export function DesignEditor() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger shortcuts when editing text
       if (state.isEditing) return;
       
-      // Undo/Redo
       if (e.key === 'z' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         if (e.shiftKey) {
@@ -168,46 +165,47 @@ export function DesignEditor() {
 
   return (
     <div className="h-screen w-full flex flex-col bg-background dark">
-      <EditorToolbar
-        zoom={state.zoom}
-        activeTool={state.activeTool}
+      <EditorHeader
+        projectName={projectName}
+        onProjectNameChange={setProjectName}
         canUndo={canUndo}
         canRedo={canRedo}
-        onZoomIn={zoomIn}
-        onZoomOut={zoomOut}
-        onZoomFit={handleZoomFit}
-        onToolChange={handleToolChange}
-        onUploadHtml={handleUploadHtml}
-        onExportPng={handleExportPng}
-        onExportHtml={handleExportHtml}
         onUndo={handleUndo}
         onRedo={handleRedo}
+        onExportPng={handleExportPng}
+        onShare={() => {}}
       />
       
       <div className="flex-1 flex overflow-hidden">
-        <TemplateSidebar
-          onSelectTemplate={handleSelectTemplate}
-          selectedTemplateId={selectedTemplateId}
-        />
-        
-        <Canvas
-          ref={canvasRef}
-          htmlContent={state.htmlContent}
-          zoom={state.zoom}
-          activeTool={state.activeTool}
-          selectedElement={state.selectedElement}
-          isEditing={state.isEditing}
-          onSelectElement={selectElement}
-          onUpdateBounds={updateSelectedBounds}
-          onStartEditing={startEditing}
-          onStopEditing={stopEditing}
-          onSetDragging={setIsDragging}
-        />
-        
-        <PropertiesPanel
+        <LeftSidebar
           selectedElement={state.selectedElement}
           onStyleChange={handleStyleChange}
+          onSelectTemplate={handleSelectTemplate}
+          selectedTemplateId={selectedTemplateId}
+          onUploadHtml={handleUploadHtml}
         />
+        
+        <div className="flex-1 flex flex-col relative">
+          <Canvas
+            ref={canvasRef}
+            htmlContent={state.htmlContent}
+            zoom={state.zoom}
+            activeTool={state.activeTool}
+            selectedElement={state.selectedElement}
+            isEditing={state.isEditing}
+            onSelectElement={selectElement}
+            onUpdateBounds={updateSelectedBounds}
+            onStartEditing={startEditing}
+            onStopEditing={stopEditing}
+            onSetDragging={setIsDragging}
+          />
+          
+          <ZoomControls
+            zoom={state.zoom}
+            onZoomIn={zoomIn}
+            onZoomOut={zoomOut}
+          />
+        </div>
       </div>
     </div>
   );
