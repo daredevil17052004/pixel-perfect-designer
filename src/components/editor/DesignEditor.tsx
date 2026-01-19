@@ -174,6 +174,7 @@ export function DesignEditor() {
         onRedo={handleRedo}
         onExportPng={handleExportPng}
         onShare={() => {}}
+        onImportHtml={handleUploadHtml}
       />
       
       <div className="flex-1 flex overflow-hidden">

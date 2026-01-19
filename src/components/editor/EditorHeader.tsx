@@ -1,4 +1,5 @@
-import { Undo2, Redo2, Download, Share2, Menu } from 'lucide-react';
+import { useRef } from 'react';
+import { Undo2, Redo2, Download, Upload, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -11,6 +12,7 @@ interface EditorHeaderProps {
   onRedo: () => void;
   onExportPng: () => void;
   onShare: () => void;
+  onImportHtml: (content: string) => void;
 }
 
 export function EditorHeader({
@@ -22,7 +24,25 @@ export function EditorHeader({
   onRedo,
   onExportPng,
   onShare,
+  onImportHtml,
 }: EditorHeaderProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type === 'text/html') {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const content = event.target?.result as string;
+        onImportHtml(content);
+      };
+      reader.readAsText(file);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
     <div className="h-14 bg-background border-b border-border flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
@@ -31,14 +51,14 @@ export function EditorHeader({
         </Button>
         
         <div className="flex items-center gap-2">
-          <span className="text-primary font-bold text-lg">Creo</span>
+          <span className="text-foreground font-bold text-lg">Creo</span>
           <span className="text-xs text-muted-foreground">Your design partner</span>
         </div>
         
         <Input
           value={projectName}
           onChange={(e) => onProjectNameChange(e.target.value)}
-          className="w-40 h-8 bg-muted/30 border-border text-sm"
+          className="w-40 h-8 bg-muted border-border text-sm"
         />
         
         <div className="flex items-center gap-1">
@@ -64,6 +84,22 @@ export function EditorHeader({
       </div>
       
       <div className="flex items-center gap-2">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".html,.htm"
+          className="hidden"
+          onChange={handleFileUpload}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <Upload className="h-4 w-4" />
+          Import HTML
+        </Button>
         <Button
           variant="outline"
           size="sm"
