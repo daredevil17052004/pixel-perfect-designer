@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { EditorHeader } from './EditorHeader';
 import { LeftSidebar } from './LeftSidebar';
+import { RightSidebar } from './RightSidebar';
 import { Canvas, CanvasRef } from './Canvas';
 import { ZoomControls } from './ZoomControls';
 import { useEditorState } from '@/hooks/useEditorState';
 import { useExport } from '@/hooks/useExport';
 import { useHistory } from '@/hooks/useHistory';
+import { useLayers } from '@/hooks/useLayers';
 import { DesignTemplate, EditorTool } from '@/types/editor';
 
 export function DesignEditor() {
@@ -30,6 +32,22 @@ export function DesignEditor() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | undefined>();
   const [projectName, setProjectName] = useState('Untitled Design');
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
+  const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
+  
+  const { 
+    layers, 
+    refreshLayers, 
+    moveLayerUp, 
+    moveLayerDown, 
+    toggleVisibility, 
+    deleteLayer,
+    reorderLayers 
+  } = useLayers(iframeDoc);
+
+  // Get iframe document when canvas is ready
+  const handleIframeReady = useCallback((doc: Document | null) => {
+    setIframeDoc(doc);
+  }, []);
 
   // Auto-save state for undo/redo when content changes
   const saveCurrentState = useCallback(() => {
@@ -163,6 +181,19 @@ export function DesignEditor() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [zoomIn, zoomOut, handleZoomFit, selectElement, setActiveTool, state.isEditing, handleUndo, handleRedo]);
 
+  const handleSelectLayer = useCallback((element: HTMLElement) => {
+    selectElement(element, iframeDoc || undefined);
+  }, [selectElement, iframeDoc]);
+
+  const handleDeleteLayer = useCallback((element: HTMLElement) => {
+    deleteLayer(element);
+    if (state.selectedElement?.element === element) {
+      selectElement(null);
+    }
+  }, [deleteLayer, selectElement, state.selectedElement]);
+
+  const selectedElementId = state.selectedElement?.element?.dataset?.layerId || null;
+
   return (
     <div className="h-screen w-full flex flex-col bg-background dark">
       <EditorHeader
@@ -199,6 +230,7 @@ export function DesignEditor() {
             onStartEditing={startEditing}
             onStopEditing={stopEditing}
             onSetDragging={setIsDragging}
+            onIframeReady={handleIframeReady}
           />
           
           <ZoomControls
@@ -207,6 +239,17 @@ export function DesignEditor() {
             onZoomOut={zoomOut}
           />
         </div>
+
+        <RightSidebar
+          layers={layers}
+          selectedElementId={selectedElementId}
+          onSelectLayer={handleSelectLayer}
+          onDeleteLayer={handleDeleteLayer}
+          onToggleVisibility={toggleVisibility}
+          onMoveLayerUp={moveLayerUp}
+          onMoveLayerDown={moveLayerDown}
+          onReorderLayers={reorderLayers}
+        />
       </div>
     </div>
   );
