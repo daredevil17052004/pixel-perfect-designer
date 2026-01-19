@@ -2,7 +2,6 @@ import { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHand
 import { SelectedElement, EditorTool, DragState } from '@/types/editor';
 import { SelectionOverlay } from './SelectionOverlay';
 import { ElementContextMenu } from './ElementContextMenu';
-import { ElementActionBar } from './ElementActionBar';
 
 interface CanvasProps {
   htmlContent: string;
@@ -15,7 +14,6 @@ interface CanvasProps {
   onStartEditing: () => void;
   onStopEditing: () => void;
   onSetDragging: (isDragging: boolean) => void;
-  onIframeReady?: (doc: Document | null) => void;
 }
 
 export interface CanvasRef {
@@ -33,12 +31,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
   onStartEditing,
   onStopEditing,
   onSetDragging,
-  onIframeReady,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
-  const [iframeSize, setIframeSize] = useState({ width: 1080, height: 1080 });
+  const [iframeSize, setIframeSize] = useState({ width: 600, height: 750 });
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -65,11 +62,25 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
     doc.close();
 
     setIframeDoc(doc);
-    onIframeReady?.(doc);
 
-    // Set fixed canvas size of 1080x1080
-    setIframeSize({ width: 1080, height: 1080 });
-  }, [htmlContent, onIframeReady]);
+    // Calculate canvas size based on content
+    setTimeout(() => {
+      const body = doc.body;
+      const posterContainer = doc.querySelector('.poster-container');
+      if (posterContainer) {
+        const rect = posterContainer.getBoundingClientRect();
+        setIframeSize({
+          width: Math.max(rect.width, 400),
+          height: Math.max(rect.height, 500),
+        });
+      } else if (body) {
+        setIframeSize({
+          width: Math.max(body.scrollWidth, 400),
+          height: Math.max(body.scrollHeight, 500),
+        });
+      }
+    }, 100);
+  }, [htmlContent]);
 
   // Handle adding new elements
   const addTextElement = useCallback((x: number, y: number) => {
@@ -315,50 +326,28 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
     }
   }, [onSelectElement]);
 
-  // Get all sibling z-indices for proper layer ordering
-  const getSiblingZIndices = useCallback((): number[] => {
-    if (!selectedElement?.element || !iframeDoc) return [];
-    const parent = selectedElement.element.parentElement;
-    if (!parent) return [];
-    
-    const siblings = Array.from(parent.children) as HTMLElement[];
-    return siblings
-      .filter(el => el !== selectedElement.element)
-      .map(el => {
-        const style = iframeDoc.defaultView?.getComputedStyle(el);
-        return parseInt(style?.zIndex || '0', 10) || 0;
-      })
-      .sort((a, b) => a - b);
-  }, [selectedElement, iframeDoc]);
-
   // Context menu actions
   const handleBringToFront = useCallback(() => {
     if (!selectedElement?.element) return;
-    const siblings = getSiblingZIndices();
-    const maxZ = siblings.length > 0 ? Math.max(...siblings) : 0;
-    selectedElement.element.style.zIndex = String(maxZ + 1);
-  }, [selectedElement, getSiblingZIndices]);
+    selectedElement.element.style.zIndex = '9999';
+  }, [selectedElement]);
 
   const handleSendToBack = useCallback(() => {
     if (!selectedElement?.element) return;
-    const siblings = getSiblingZIndices();
-    const minZ = siblings.length > 0 ? Math.min(...siblings) : 1;
-    selectedElement.element.style.zIndex = String(Math.max(0, minZ - 1));
-  }, [selectedElement, getSiblingZIndices]);
+    selectedElement.element.style.zIndex = '1';
+  }, [selectedElement]);
 
   const handleBringForward = useCallback(() => {
-    if (!selectedElement?.element || !iframeDoc) return;
-    const style = iframeDoc.defaultView?.getComputedStyle(selectedElement.element);
-    const currentZ = parseInt(style?.zIndex || '0', 10) || 0;
+    if (!selectedElement?.element) return;
+    const currentZ = parseInt(selectedElement.element.style.zIndex || '1', 10);
     selectedElement.element.style.zIndex = String(currentZ + 1);
-  }, [selectedElement, iframeDoc]);
+  }, [selectedElement]);
 
   const handleSendBackward = useCallback(() => {
-    if (!selectedElement?.element || !iframeDoc) return;
-    const style = iframeDoc.defaultView?.getComputedStyle(selectedElement.element);
-    const currentZ = parseInt(style?.zIndex || '0', 10) || 0;
-    selectedElement.element.style.zIndex = String(Math.max(0, currentZ - 1));
-  }, [selectedElement, iframeDoc]);
+    if (!selectedElement?.element) return;
+    const currentZ = parseInt(selectedElement.element.style.zIndex || '1', 10);
+    selectedElement.element.style.zIndex = String(Math.max(1, currentZ - 1));
+  }, [selectedElement]);
 
   const handleSetTransparency = useCallback((opacity: number) => {
     if (!selectedElement?.element) return;
@@ -429,36 +418,17 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
                 title="Design Canvas"
               />
               {selectedElement && !isEditing && (
-                <>
-                  <SelectionOverlay 
-                    bounds={selectedElement.bounds}
-                    zoom={zoom}
-                  />
-                  <div 
-                    className="absolute z-50"
-                    style={{
-                      left: selectedElement.bounds.x,
-                      top: selectedElement.bounds.y + selectedElement.bounds.height + 8,
-                    }}
-                  >
-                    <ElementActionBar
-                      onBringToFront={handleBringToFront}
-                      onSendToBack={handleSendToBack}
-                      onBringForward={handleBringForward}
-                      onSendBackward={handleSendBackward}
-                      onDelete={handleDeleteElement}
-                      onDuplicate={handleDuplicateElement}
-                    />
-                  </div>
-                </>
+                <SelectionOverlay 
+                  bounds={selectedElement.bounds}
+                  zoom={zoom}
+                />
               )}
             </>
           ) : (
-            <div className="w-[1080px] h-[1080px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border">
+            <div className="w-[600px] h-[750px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border">
               <div className="text-6xl mb-4">📄</div>
               <div className="text-lg font-medium mb-2 text-foreground">No design loaded</div>
-              <div className="text-sm text-center px-4">Select a template from the sidebar or upload HTML to start editing</div>
-              <div className="text-xs text-muted-foreground mt-2">Canvas: 1080 × 1080</div>
+              <div className="text-sm">Select a template from the sidebar to start editing</div>
             </div>
           )}
         </div>
