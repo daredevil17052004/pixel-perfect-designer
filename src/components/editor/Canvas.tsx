@@ -15,6 +15,7 @@ interface CanvasProps {
   onStartEditing: () => void;
   onStopEditing: () => void;
   onSetDragging: (isDragging: boolean) => void;
+  onIframeReady?: (doc: Document | null) => void;
 }
 
 export interface CanvasRef {
@@ -32,6 +33,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
   onStartEditing,
   onStopEditing,
   onSetDragging,
+  onIframeReady,
 }, ref) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,10 +65,11 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
     doc.close();
 
     setIframeDoc(doc);
+    onIframeReady?.(doc);
 
     // Set fixed canvas size of 1080x1080
     setIframeSize({ width: 1080, height: 1080 });
-  }, [htmlContent]);
+  }, [htmlContent, onIframeReady]);
 
   // Handle adding new elements
   const addTextElement = useCallback((x: number, y: number) => {
