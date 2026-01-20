@@ -123,7 +123,7 @@ export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange, on
         throw new Error('API key not configured');
       }
 
-      const response = await fetch('https://api.example.com/generate', {
+      const response = await fetch('https://srvr.creo-dev.onesol.in/generate', {
         method: 'POST',
         headers: {
           'x-user-key': apiKey,
