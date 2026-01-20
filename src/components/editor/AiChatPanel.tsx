@@ -1,156 +1,50 @@
-// import { useState } from 'react';
-// import { Send, Bot, User, Sparkles } from 'lucide-react';
-// import { Button } from '@/components/ui/button';
-// import { Input } from '@/components/ui/input';
-// import { ScrollArea } from '@/components/ui/scroll-area';
-// import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-// import { Separator } from '@/components/ui/separator';
-
-// interface Message {
-//   id: string;
-//   role: 'user' | 'assistant';
-//   content: string;
-// }
-
-// export function AiChatPanel() {
-//   const [input, setInput] = useState('');
-//   const [messages, setMessages] = useState<Message[]>([
-//     {
-//       id: '1',
-//       role: 'assistant',
-//       content: 'Hi! I can help you design your poster. Try asking me to "Generate a modern color palette" or "Suggest a headline".'
-//     }
-//   ]);
-
-//   const handleSend = () => {
-//     if (!input.trim()) return;
-
-//     const newMessage: Message = {
-//       id: Date.now().toString(),
-//       role: 'user',
-//       content: input
-//     };
-
-//     setMessages(prev => [...prev, newMessage]);
-//     setInput('');
-
-//     // Mock AI response
-//     setTimeout(() => {
-//       setMessages(prev => [...prev, {
-//         id: (Date.now() + 1).toString(),
-//         role: 'assistant',
-//         content: `I received your request: "${newMessage.content}". I'm currently a demo, but soon I'll be able to execute design changes directly!`
-//       }]);
-//     }, 1000);
-//   };
-
-//   const handleKeyDown = (e: React.KeyboardEvent) => {
-//     if (e.key === 'Enter' && !e.shiftKey) {
-//       e.preventDefault();
-//       handleSend();
-//     }
-//   };
-
-//   return (
-//     <div className="w-full bg-card border-l border-border flex flex-col h-full">
-//       <div className="p-4 border-b border-border flex items-center gap-2">
-//         <Sparkles className="h-4 w-4 text-primary" />
-//         <h3 className="font-semibold text-sm">AI Assistant</h3>
-//       </div>
-
-//       <ScrollArea className="flex-1 p-4">
-//         <div className="space-y-4">
-//           {messages.map((message) => (
-//             <div
-//               key={message.id}
-//               className={`flex gap-3 ${
-//                 message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-//               }`}
-//             >
-//               <Avatar className="h-8 w-8 border">
-//                 {message.role === 'assistant' ? (
-//                   <>
-//                     <AvatarImage src="/bot-avatar.png" />
-//                     <AvatarFallback className="bg-primary text-primary-foreground">
-//                       <Bot className="h-4 w-4" />
-//                     </AvatarFallback>
-//                   </>
-//                 ) : (
-//                   <>
-//                     <AvatarImage src="/user-avatar.png" />
-//                     <AvatarFallback className="bg-muted">
-//                       <User className="h-4 w-4" />
-//                     </AvatarFallback>
-//                   </>
-//                 )}
-//               </Avatar>
-              
-//               <div
-//                 className={`rounded-lg p-3 text-sm max-w-[80%] ${
-//                   message.role === 'user'
-//                     ? 'bg-primary text-primary-foreground'
-//                     : 'bg-muted text-muted-foreground'
-//                 }`}
-//               >
-//                 {message.content}
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </ScrollArea>
-
-//       <div className="p-4 border-t border-border">
-//         <form 
-//           onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-//           className="flex gap-2"
-//         >
-//           <Input
-//             value={input}
-//             onChange={(e) => setInput(e.target.value)}
-//             onKeyDown={handleKeyDown}
-//             placeholder="Ask AI for help..."
-//             className="flex-1"
-//           />
-//           <Button type="submit" size="icon" disabled={!input.trim()}>
-//             <Send className="h-4 w-4" />
-//           </Button>
-//         </form>
-//       </div>
-//     </div>
-//   );
-// }
-
-
 import { useState, useEffect, useRef } from 'react';
-import { Send, Bot, User, Sparkles, Wand2 } from 'lucide-react';
+import { Send, Bot, User, Sparkles, Upload, Image, FileImage, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { SelectedElement } from '@/types/editor';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  imageUrl?: string;
 }
 
 interface AiChatPanelProps {
   selectedElement: SelectedElement | null;
   onStyleChange: (property: string, value: string) => void;
   onZIndexChange: (action: 'front' | 'back' | 'forward' | 'backward') => void;
+  onPosterGenerated?: (imageUrl: string) => void;
 }
 
-export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange }: AiChatPanelProps) {
-  const [input, setInput] = useState('');
+export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange, onPosterGenerated }: AiChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: 'I can help you edit! Try "Set opacity to 50%" or "Bring to front".'
+      content: 'Welcome! Upload a reference image and logo, then describe your poster to generate amazing designs.'
     }
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Form state for poster generation
+  const [refImage, setRefImage] = useState<File | null>(null);
+  const [refImagePreview, setRefImagePreview] = useState<string | null>(null);
+  const [logo, setLogo] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [posterPrompt, setPosterPrompt] = useState('');
+  const [visualPrompt, setVisualPrompt] = useState('');
+  const [brandingPrompt, setBrandingPrompt] = useState('');
+
+  const refInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -158,99 +52,123 @@ export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange }: 
     }
   }, [messages]);
 
-  const processCommand = (text: string) => {
-    const lowerText = text.toLowerCase();
-    
-    // --- Transparency / Opacity ---
-    const opacityMatch = lowerText.match(/(?:opacity|transparency)\s*(?:is|to)?\s*(\d+)%?/);
-    if (opacityMatch) {
-      if (!selectedElement) return "Please select an element first.";
-      const value = parseInt(opacityMatch[1], 10);
-      const opacity = Math.max(0, Math.min(100, value)) / 100;
-      onStyleChange('opacity', String(opacity));
-      return `Set opacity to ${value}%.`;
+  const handleRefImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setRefImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRefImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-
-    // --- Z-Index / Layering ---
-    if (lowerText.includes('front')) {
-      if (!selectedElement) return "Please select an element first.";
-      onZIndexChange('front');
-      return "Brought element to the front.";
-    }
-    if (lowerText.includes('back')) {
-      if (!selectedElement) return "Please select an element first.";
-      onZIndexChange('back');
-      return "Sent element to the back.";
-    }
-    if (lowerText.includes('forward')) {
-      if (!selectedElement) return "Please select an element first.";
-      onZIndexChange('forward');
-      return "Moved element forward.";
-    }
-    if (lowerText.includes('backward')) {
-      if (!selectedElement) return "Please select an element first.";
-      onZIndexChange('backward');
-      return "Moved element backward.";
-    }
-
-    // --- Colors ---
-    const colorMatch = lowerText.match(/(?:change|set)?\s*(?:color|fill|background)\s*(?:to)?\s*([a-z]+|#[0-9a-f]{6})/);
-    if (colorMatch) {
-        if (!selectedElement) return "Please select an element first.";
-        const color = colorMatch[1];
-        // Simple heuristic: if it's text, change color, else background
-        if (selectedElement.isTextElement) {
-            onStyleChange('color', color);
-        } else {
-            onStyleChange('background-color', color);
-        }
-        return `Changed color to ${color}.`;
-    }
-
-    return null;
   };
 
-  const handleSend = () => {
-    if (!input.trim()) return;
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogo(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-    const newMessage: Message = {
+  const clearRefImage = () => {
+    setRefImage(null);
+    setRefImagePreview(null);
+    if (refInputRef.current) refInputRef.current.value = '';
+  };
+
+  const clearLogo = () => {
+    setLogo(null);
+    setLogoPreview(null);
+    if (logoInputRef.current) logoInputRef.current.value = '';
+  };
+
+  const handleGeneratePoster = async () => {
+    if (!refImage || !logo) {
+      toast.error('Please upload both a reference image and a logo');
+      return;
+    }
+
+    if (!brandingPrompt.trim()) {
+      toast.error('Please enter a branding/logo position prompt');
+      return;
+    }
+
+    setIsGenerating(true);
+
+    // Add user message to chat
+    const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: input
+      content: `Generate poster:\n• Prompt: ${posterPrompt || 'Not specified'}\n• Visual Style: ${visualPrompt || 'Not specified'}\n• Logo Position: ${brandingPrompt}`
     };
+    setMessages(prev => [...prev, userMessage]);
 
-    setMessages(prev => [...prev, newMessage]);
-    setInput('');
+    try {
+      const formData = new FormData();
+      formData.append('prompt', posterPrompt);
+      formData.append('style_prompt', visualPrompt);
+      formData.append('ref', refImage);
+      formData.append('logo', logo);
+      formData.append('branding_prompt', brandingPrompt);
 
-    // Process logic
-    const actionResult = processCommand(input);
-
-    setTimeout(() => {
-      let responseContent = '';
+      const apiKey = import.meta.env.VITE_POSTER_API_KEY;
       
-      if (actionResult) {
-        responseContent = actionResult;
-      } else {
-        // Fallback for unknown commands
-        if (!selectedElement) {
-            responseContent = "I can't perform that action right now. Try selecting an element and asking to change its opacity or position.";
-        } else {
-            responseContent = `I received your request: "${input}". I'm learning new commands every day!`;
-        }
+      if (!apiKey) {
+        throw new Error('API key not configured');
       }
 
-      setMessages(prev => [...prev, {
+      const response = await fetch('https://api.example.com/generate', {
+        method: 'POST',
+        headers: {
+          'x-user-key': apiKey,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail?.[0]?.msg || `API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      
+      // Add assistant response with generated image
+      const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: responseContent
-      }]);
-    }, 600);
-  };
+        content: 'Here\'s your generated poster! Click to add it to your canvas.',
+        imageUrl: result
+      };
+      setMessages(prev => [...prev, assistantMessage]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+      if (onPosterGenerated && typeof result === 'string') {
+        onPosterGenerated(result);
+      }
+
+      toast.success('Poster generated successfully!');
+
+      // Clear form after successful generation
+      setPosterPrompt('');
+      setVisualPrompt('');
+      setBrandingPrompt('');
+
+    } catch (error) {
+      console.error('Error generating poster:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Sorry, there was an error generating your poster: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+      setMessages(prev => [...prev, errorMessage]);
+      toast.error('Failed to generate poster');
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -258,11 +176,12 @@ export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange }: 
     <div className="w-full bg-card flex flex-col h-full border-l border-border">
       <div className="p-4 border-b border-border flex items-center gap-2 bg-muted/20">
         <Sparkles className="h-4 w-4 text-primary" />
-        <h3 className="font-semibold text-sm">AI Designer</h3>
+        <h3 className="font-semibold text-sm">AI Poster Generator</h3>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        <div className="space-y-4">
+      <ScrollArea className="flex-1" ref={scrollRef}>
+        <div className="p-4 space-y-4">
+          {/* Chat Messages */}
           {messages.map((message) => (
             <div
               key={message.id}
@@ -295,43 +214,150 @@ export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange }: 
                     : 'bg-muted/50 text-foreground border border-border'
                 }`}
               >
-                {message.content}
+                <p className="whitespace-pre-wrap">{message.content}</p>
+                {message.imageUrl && (
+                  <img 
+                    src={message.imageUrl} 
+                    alt="Generated poster" 
+                    className="mt-2 rounded-md max-w-full cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => onPosterGenerated?.(message.imageUrl!)}
+                  />
+                )}
               </div>
             </div>
           ))}
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-border bg-background">
-        <div className="relative">
-            <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Make it 50% transparent..."
-                className="pr-10"
+      {/* Poster Generation Form */}
+      <div className="p-4 border-t border-border bg-background space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          {/* Reference Image Upload */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Reference Image *</Label>
+            <input
+              type="file"
+              ref={refInputRef}
+              accept="image/*"
+              onChange={handleRefImageChange}
+              className="hidden"
             />
-            <Button 
-                size="icon" 
-                variant="ghost"
-                className="absolute right-0 top-0 h-full w-10 text-muted-foreground hover:text-primary"
-                onClick={handleSend}
-                disabled={!input.trim()}
-            >
-                <Send className="h-4 w-4" />
-            </Button>
-        </div>
-        <div className="mt-2 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-            {['Opacity 50%', 'Bring to front', 'Send to back'].map(cmd => (
-                <button 
-                    key={cmd}
-                    onClick={() => setInput(cmd)}
-                    className="text-[10px] bg-secondary hover:bg-secondary/80 px-2 py-1 rounded-full whitespace-nowrap transition-colors"
+            {refImagePreview ? (
+              <div className="relative group">
+                <img 
+                  src={refImagePreview} 
+                  alt="Reference" 
+                  className="w-full h-20 object-cover rounded-md border border-border"
+                />
+                <button
+                  onClick={clearRefImage}
+                  className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                 >
-                    {cmd}
+                  <X className="h-3 w-3" />
                 </button>
-            ))}
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-20 flex flex-col gap-1"
+                onClick={() => refInputRef.current?.click()}
+              >
+                <Image className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Upload Reference</span>
+              </Button>
+            )}
+          </div>
+
+          {/* Logo Upload */}
+          <div className="space-y-2">
+            <Label className="text-xs font-medium">Logo *</Label>
+            <input
+              type="file"
+              ref={logoInputRef}
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="hidden"
+            />
+            {logoPreview ? (
+              <div className="relative group">
+                <img 
+                  src={logoPreview} 
+                  alt="Logo" 
+                  className="w-full h-20 object-contain rounded-md border border-border bg-muted/30"
+                />
+                <button
+                  onClick={clearLogo}
+                  className="absolute top-1 right-1 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full h-20 flex flex-col gap-1"
+                onClick={() => logoInputRef.current?.click()}
+              >
+                <FileImage className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Upload Logo</span>
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Poster Prompt */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Poster Prompt</Label>
+          <Textarea
+            value={posterPrompt}
+            onChange={(e) => setPosterPrompt(e.target.value)}
+            placeholder="Describe your poster concept..."
+            className="min-h-[60px] text-sm resize-none"
+          />
+        </div>
+
+        {/* Visual Style Prompt */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Visual Style Prompt</Label>
+          <Input
+            value={visualPrompt}
+            onChange={(e) => setVisualPrompt(e.target.value)}
+            placeholder="e.g., minimalist, vibrant, retro..."
+            className="text-sm"
+          />
+        </div>
+
+        {/* Branding/Logo Position Prompt */}
+        <div className="space-y-2">
+          <Label className="text-xs font-medium">Logo Position Prompt *</Label>
+          <Input
+            value={brandingPrompt}
+            onChange={(e) => setBrandingPrompt(e.target.value)}
+            placeholder="e.g., bottom right corner, centered at top..."
+            className="text-sm"
+          />
+        </div>
+
+        {/* Generate Button */}
+        <Button
+          onClick={handleGeneratePoster}
+          disabled={isGenerating || !refImage || !logo || !brandingPrompt.trim()}
+          className="w-full"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate Poster
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );
