@@ -514,6 +514,42 @@ export function DesignEditor() {
               selectedElement={state.selectedElement}
               onStyleChange={handleStyleChange}
               onZIndexChange={handleZIndexChange}
+              onPosterGenerated={(htmlOrUrl) => {
+                // If the API returns HTML, set it directly
+                // If it returns an image URL, wrap it in HTML
+                if (htmlOrUrl.startsWith('<') || htmlOrUrl.startsWith('<!')) {
+                  setHtmlContent(htmlOrUrl);
+                } else {
+                  // It's an image URL - wrap in 1080x1080 HTML
+                  const imageHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { width: 1080px; height: 1080px; overflow: hidden; }
+    .poster-container { 
+      width: 1080px; 
+      height: 1080px; 
+      position: relative;
+      background: #000;
+    }
+    .poster-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="poster-container">
+    <img src="${htmlOrUrl}" alt="Generated Poster" data-type="image" />
+  </div>
+</body>
+</html>`;
+                  setHtmlContent(imageHtml);
+                }
+                setSelectedTemplateId(undefined);
+              }}
             />
           </ResizablePanel>
           
