@@ -454,7 +454,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [iframeDoc, setIframeDoc] = useState<Document | null>(null);
-  const [iframeSize, setIframeSize] = useState({ width: 600, height: 750 });
+  const [iframeSize] = useState({ width: 1080, height: 1080 });
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     startX: 0,
@@ -608,22 +608,7 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
 
     setIframeDoc(doc);
 
-    setTimeout(() => {
-      const body = doc.body;
-      const posterContainer = doc.querySelector('.poster-container');
-      if (posterContainer) {
-        const rect = posterContainer.getBoundingClientRect();
-        setIframeSize({
-          width: Math.max(rect.width, 400),
-          height: Math.max(rect.height, 500),
-        });
-      } else if (body) {
-        setIframeSize({
-          width: Math.max(body.scrollWidth, 400),
-          height: Math.max(body.scrollHeight, 500),
-        });
-      }
-    }, 100);
+    // Canvas size is fixed at 1080x1080
   }, [htmlContent]);
 
   // Event Listeners
@@ -825,10 +810,10 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
               )}
             </>
           ) : (
-            <div className="w-[600px] h-[750px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border shadow-sm">
+            <div className="w-[1080px] h-[1080px] bg-card flex flex-col items-center justify-center text-muted-foreground rounded-lg border border-border shadow-sm">
               <div className="text-6xl mb-4 grayscale opacity-50">📄</div>
               <div className="text-lg font-medium mb-2 text-foreground">No design loaded</div>
-              <div className="text-sm">Select a template to start</div>
+              <div className="text-sm">Select a template or generate a poster (1080×1080)</div>
             </div>
           )}
         </div>
