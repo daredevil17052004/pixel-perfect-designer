@@ -119,7 +119,7 @@ export function SelectionOverlay({ bounds, zoom, onResize, onResizeEnd }: Select
 
   return (
     <div
-      className="absolute pointer-events-none"
+      className="absolute pointer-events-none z-50"
       style={{
         left: bounds.x,
         top: bounds.y,
