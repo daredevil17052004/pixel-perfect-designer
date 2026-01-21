@@ -137,18 +137,38 @@ export function AiChatPanel({ selectedElement, onStyleChange, onZIndexChange, on
       }
 
       const result = await response.json();
+      console.log('API Response:', result);
+      
+      // Extract image URL from response (handle different response formats)
+      let imageUrl: string | null = null;
+      if (typeof result === 'string') {
+        imageUrl = result;
+      } else if (result?.image_url) {
+        imageUrl = result.image_url;
+      } else if (result?.url) {
+        imageUrl = result.url;
+      } else if (result?.data?.url) {
+        imageUrl = result.data.url;
+      } else if (result?.output) {
+        imageUrl = result.output;
+      }
+      
+      if (!imageUrl) {
+        throw new Error('No image URL in response');
+      }
       
       // Add assistant response with generated image
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: 'Here\'s your generated poster! Click to add it to your canvas.',
-        imageUrl: result
+        imageUrl: imageUrl
       };
       setMessages(prev => [...prev, assistantMessage]);
 
-      if (onPosterGenerated && typeof result === 'string') {
-        onPosterGenerated(result);
+      // Automatically add to canvas
+      if (onPosterGenerated) {
+        onPosterGenerated(imageUrl);
       }
 
       toast.success('Poster generated successfully!');
