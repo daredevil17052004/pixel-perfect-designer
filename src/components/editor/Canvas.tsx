@@ -462,10 +462,63 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
     elementStartX: 0,
     elementStartY: 0,
   });
+  const [isResizing, setIsResizing] = useState(false);
 
   const getHtmlContent = useCallback(() => {
     return iframeDoc?.documentElement?.outerHTML || '';
   }, [iframeDoc]);
+
+  // Handle element resize from SelectionOverlay
+  const handleResize = useCallback((newBounds: { x: number; y: number; width: number; height: number }, handle: string) => {
+    if (!selectedElement?.element || !iframeDoc) return;
+    
+    setIsResizing(true);
+    const el = selectedElement.element;
+    const computedStyle = iframeDoc.defaultView?.getComputedStyle(el);
+    
+    // Make element positioned if static
+    if (computedStyle?.position === 'static') {
+      el.style.position = 'absolute';
+    }
+
+    // Get the initial element position in iframe coordinates
+    const iframeRect = iframeRef.current?.getBoundingClientRect();
+    if (!iframeRect) return;
+
+    // Calculate new position relative to iframe
+    const newLeft = (newBounds.x - iframeRect.left) / zoom;
+    const newTop = (newBounds.y - iframeRect.top) / zoom;
+
+    // Update position for handles that affect position
+    if (handle.includes('left') || handle === 'left') {
+      el.style.left = `${newLeft}px`;
+    }
+    if (handle.includes('top') || handle === 'top') {
+      el.style.top = `${newTop}px`;
+    }
+
+    // Update size
+    el.style.width = `${newBounds.width / zoom}px`;
+    el.style.height = `${newBounds.height / zoom}px`;
+    
+    // Update bounds in state
+    onUpdateBounds(newBounds);
+  }, [selectedElement, iframeDoc, zoom, onUpdateBounds]);
+
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+    onContentChange(getHtmlContent());
+    // Re-select to update bounds
+    if (selectedElement?.element && iframeDoc) {
+      const rect = selectedElement.element.getBoundingClientRect();
+      onUpdateBounds({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+  }, [selectedElement, iframeDoc, onContentChange, getHtmlContent, onUpdateBounds]);
 
   const executeChangeZIndex = useCallback((action: 'front' | 'back' | 'forward' | 'backward') => {
     if (!selectedElement?.element || !iframeDoc) return;
@@ -806,7 +859,12 @@ export const Canvas = forwardRef<CanvasRef, CanvasProps>(function Canvas({
                 title="Design Canvas"
               />
               {selectedElement && !isEditing && (
-                <SelectionOverlay bounds={selectedElement.bounds} zoom={zoom} />
+                <SelectionOverlay 
+                  bounds={selectedElement.bounds} 
+                  zoom={zoom} 
+                  onResize={handleResize}
+                  onResizeEnd={handleResizeEnd}
+                />
               )}
             </>
           ) : (
